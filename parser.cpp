@@ -12,7 +12,7 @@ void parser::transform_to_timestamp_promat(vector<vector<std::string> >* mass_ln
     }
 }
 
-vector<vector<std::string> > parser::pars_file(std::string fileName, int data_num, int start_reading_line){
+vector<vector<std::string> > parser::pars_file(std::string fileName){
     vector<vector<std::string> > rows;
     vector<std::string> row;
     FILE* file;
@@ -21,11 +21,6 @@ vector<vector<std::string> > parser::pars_file(std::string fileName, int data_nu
     if(file == NULL)
     {
         return rows;
-    }
-    for(int i=1; i<start_reading_line;i++)
-    {
-        char buf[1000];
-        fgets(buf,1000,file);
     }
     int i=0;
     while(!feof(file))
@@ -39,7 +34,7 @@ vector<vector<std::string> > parser::pars_file(std::string fileName, int data_nu
         std::string s1(buf);
         memset(buf,0,1000);
         char delimiter;
-        //std::string::size_type n = s1.find(",");
+        int n = s1.find(",")-1;
         delimiter=',';
         int j=0;
         int i=0;
@@ -58,20 +53,20 @@ vector<vector<std::string> > parser::pars_file(std::string fileName, int data_nu
         }
         s1=s1.substr(end,i-end);
         row.push_back(s1);
-        if(j!=data_num-1){
-            std::string broke_row;
-            int i=0;
-            while(i<row.size()-1){
-                broke_row+=row.at(i)+",";
-                i++;
-            }
-            broke_row+=row.at(i);
-            mass_broken_ln.push_back(broke_row);
-        }
-        else{
+//        if(j!=n-1){
+//            std::string broke_row;
+//            int i=0;
+//            while(i<row.size()-1){
+//                broke_row+=row.at(i)+",";
+//                i++;
+//            }
+//            broke_row+=row.at(i);
+//            mass_broken_ln.push_back(broke_row);
+//        }
+//        else{
            rows.push_back(row);
            row.clear();
-        }
+//        }
     }
     fclose(file);
     return rows;

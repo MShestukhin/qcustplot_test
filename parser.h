@@ -12,7 +12,7 @@ private :
 public:
     parser();
     void transform_to_timestamp_promat(vector<vector<std::string> >* mass_ln_to_transform, int num_table);
-    vector<vector<string> > pars_file(std::string fileName, int data_num, int start_reading_line);
+    vector<vector<string> > pars_file(std::string fileName);
     vector<std::string> mass_broken_ln;
 };
 
