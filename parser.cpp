@@ -4,14 +4,6 @@ parser::parser()
 {
 }
 
-void parser::transform_to_timestamp_promat(vector<vector<std::string> >* mass_ln_to_transform, int num_row){
-    for(int i=0;i<mass_ln_to_transform->size();i++){
-        std::string str_tr=mass_ln_to_transform->at(i).at(num_row);
-        std::string timestamp=str_tr.substr(0,4)+"-"+str_tr.substr(4,2)+"-"+str_tr.substr(6,2)+" "+str_tr.substr(8,2)+":"+str_tr.substr(10,2)+":"+str_tr.substr(12,2);
-        mass_ln_to_transform->at(i).at(num_row)=timestamp;
-    }
-}
-
 vector<vector<std::string> > parser::pars_file(std::string fileName){
     vector<vector<std::string> > rows;
     vector<std::string> row;
@@ -53,20 +45,8 @@ vector<vector<std::string> > parser::pars_file(std::string fileName){
         }
         s1=s1.substr(end,i-end);
         row.push_back(s1);
-//        if(j!=n-1){
-//            std::string broke_row;
-//            int i=0;
-//            while(i<row.size()-1){
-//                broke_row+=row.at(i)+",";
-//                i++;
-//            }
-//            broke_row+=row.at(i);
-//            mass_broken_ln.push_back(broke_row);
-//        }
-//        else{
            rows.push_back(row);
            row.clear();
-//        }
     }
     fclose(file);
     return rows;

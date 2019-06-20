@@ -10,6 +10,12 @@ Widget::Widget(QWidget *parent) :
     ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
+    connect(ui->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertScrollBarChanged(int)));
+    connect(ui->widget->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
+    connect(ui->widget->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
+    ui->horizontalScrollBar->setVisible(false);
+    ui->verticalScrollBar->setVisible(false);
 }
 
 Widget::~Widget()
@@ -39,34 +45,72 @@ void Widget::on_toolButton_clicked()
             QCheckBox* checkbox=new QCheckBox;
             checkbox->setText(mass.at(0).at(j).c_str());
             QObject::connect(checkbox, &QCheckBox::stateChanged,[=](){
-                qDebug()<<checkbox->isChecked();
                 ui->widget->graph(j-1)->setVisible(checkbox->isChecked());
-                    ui->widget->replot();
+                ui->widget->replot();
             });
             ui->horizontalLayout_3->addWidget(checkbox);
             ui->widget->addGraph();
-            ui->widget->graph(j-1)->setData(y.at(0), y.at(j));
-            ui->widget->graph(j-1)->setVisible(false);
             if(j==1){
-                ui->widget->graph(j-1)->setVisible(false);
+                ui->widget->graph(j-1)->setVisible(true);
                 checkbox->setChecked(true);
             }
+            else{
+                ui->widget->graph(j-1)->setVisible(false);
+            }
+            ui->widget->graph(j-1)->setData(y.at(0), y.at(j));
+            if(j<11)
+                ui->widget->graph(j-1)->setPen(QPen(color_plot[j-1]));
         }
         double rang_max_x=*std::max_element(y.at(0).begin(),y.at(0).end());
         double rang_min_x=*std::min_element(y.at(0).begin(),y.at(0).end());
-        double rang_max_y=*std::max_element(y.at(j).begin(),y.at(j).end());
-        if(max_y>rang_max_y)
-            max_y=(double)rang_max_y;
-        double rang_min_y=*std::min_element(y.at(j).begin(),y.at(j).end());
-        if(min_y<rang_min_y)
-            min_y=(double)rang_min_y;
-        double min=(double)rang_min_y;
-        double max=30.0;
+        if(j>0){
+            double rang_max_y=*std::max_element(y.at(j).begin(),y.at(j).end());
+            if(max_y<rang_max_y)
+                max_y=(double)rang_max_y;
+            double rang_min_y=*std::min_element(y.at(j).begin(),y.at(j).end());
+            if(min_y>rang_min_y)
+                min_y=(double)rang_min_y;
+        }
         ui->widget->xAxis->setRange(rang_min_x, rang_max_x);
-        ui->widget->yAxis->setRange(-30, 30);
+        ui->widget->yAxis->setRange(min_y, max_y);
+        ui->horizontalScrollBar->setRange(100*rang_min_x, 100*rang_max_x);
+        ui->verticalScrollBar->setRange(-100*min_y, 100*max_y);
     }
+    ui->horizontalScrollBar->setVisible(true);
+    ui->verticalScrollBar->setVisible(true);
     ui->widget->xAxis->setLabel("t");
     ui->widget->yAxis->setLabel("data");
     ui->widget->replot();
     ui->widget->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 }
+
+void Widget::horzScrollBarChanged(int value)
+{
+  if (qAbs(ui->widget->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
+  {
+    ui->widget->xAxis->setRange(value/100.0, ui->widget->xAxis->range().size(), Qt::AlignCenter);
+    ui->widget->replot();
+  }
+}
+
+void Widget::vertScrollBarChanged(int value)
+{
+  if (qAbs(ui->widget->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
+  {
+    ui->widget->yAxis->setRange(-value/100.0, ui->widget->yAxis->range().size(), Qt::AlignCenter);
+    ui->widget->replot();
+  }
+}
+
+void Widget::xAxisChanged(QCPRange range)
+{
+  ui->horizontalScrollBar->setValue(qRound(range.center()*100.0)); // adjust position of scroll bar slider
+  ui->horizontalScrollBar->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
+}
+
+void Widget::yAxisChanged(QCPRange range)
+{
+  ui->verticalScrollBar->setValue(qRound(-range.center()*100.0)); // adjust position of scroll bar slider
+  ui->verticalScrollBar->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
+}
+
